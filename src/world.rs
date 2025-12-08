@@ -1,7 +1,6 @@
 use crate::archetype::Archetype;
-use crate::entity::{self, Entity};
+use crate::entity::Entity;
 use std::collections::HashMap;
-use std::ptr::fn_addr_eq;
 
 pub struct World {
     entities: Vec<u32>,
