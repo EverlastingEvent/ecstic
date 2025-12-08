@@ -1,9 +1,11 @@
 use crate::archetype::Archetype;
-use crate::entity::Entity;
+use crate::entity::{self, Entity};
 use std::collections::HashMap;
+use std::ptr::fn_addr_eq;
 
 pub struct World {
     entities: Vec<u32>,
+    free_ids: Vec<u32>,
     archetypes: Vec<Archetype>,
     entity_to_archetype: HashMap<u32, (usize, usize)>, // Entity.id -> (arch_index, index_in_archetype)
 }
@@ -13,6 +15,7 @@ impl World {
         // Инициализируем пустой мир
         World {
             entities: Vec::new(),
+            free_ids: Vec::new(),
             archetypes: Vec::new(),
             entity_to_archetype: HashMap::new(),
         }
@@ -20,36 +23,34 @@ impl World {
 
     pub fn spawn(&mut self) -> Entity {
         // Спавним новую сущность
-        let count_of_entities: u32 = self.entities.iter().sum();
-        let new_entity_number = count_of_entities + 1;
-        let new_entity_id = u32::MAX % new_entity_number;
-        match self.entities.get(new_entity_id as usize) {
-            Some(value) => {
-                let new_entity = Entity {
-                    id: new_entity_id,
-                    generation: value + 1,
-                };
-                self.entities
-                    .insert(new_entity.id as usize, new_entity.generation);
-                new_entity
+        if let Some(reused_id) = self.free_ids.pop() {
+            let generation = &mut self.entities[reused_id as usize];
+            // такая запись горантирует, что старые ссылки на сущность будут удалены
+            *generation += 1;
+            Entity {
+                id: reused_id,
+                generation: *generation,
             }
-            None => {
-                let new_entity = Entity {
-                    id: new_entity_id,
-                    generation: 1,
-                };
-                self.entities
-                    .insert(new_entity.id as usize, new_entity.generation);
-                new_entity
+        } else {
+            let new_id = self.entities.len() as u32;
+            self.entities.push(1);
+            Entity {
+                id: new_id,
+                generation: 1,
             }
         }
     }
 
-    pub fn despawn(&mut self, _entity: Entity) -> bool {
-        //TODO: реализовать (после работы архетипов)
-
-        // Временная заглушка для работы теста:
-        true
+    pub fn despawn(&mut self, entity: Entity) -> bool {
+        // Проверка: существует ли ID и совпадает ли поколение
+        if let Some(&genir) = self.entities.get(entity.id as usize) {
+            if genir == entity.generation {
+                self.free_ids.push(entity.id);
+                //TODO: реализовать (после работы архетипов)
+                return true;
+            }
+        }
+        false
     }
 
     pub fn insert_component<T>(&mut self, _entity: Entity, _component: T) {
