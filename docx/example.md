@@ -80,7 +80,7 @@ impl System for NpcMovementSystem {
 struct PlayerInputSystem;
 
 impl System for PlayerInputSystem {
-    fn run(&mut self, world: &mut World) {
+    fn run(&mut self, world: &World) {
         // Используем QueryPlayer (псевдокод)
         // for (mut pos, _health, _input) in QueryPlayer::iter(world) {
         //     // обработка ввода, например, pos.x += 1.0

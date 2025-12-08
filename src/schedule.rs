@@ -6,14 +6,16 @@ pub struct Schedule {
 
 impl Schedule {
     pub fn new() -> Self {
-        Self { systems: Vec::new() }
+        Self {
+            systems: Vec::new(),
+        }
     }
-    
+
     pub fn add_system(&mut self, system: Box<dyn System>) {
         self.systems.push(system);
     }
-    
-    pub fn run(&mut self, world: &mut crate::world::World) {
+
+    pub fn run(&mut self, world: &crate::world::World) {
         for system in &mut self.systems {
             system.run(world);
         }
