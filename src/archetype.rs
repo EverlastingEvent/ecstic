@@ -1,8 +1,9 @@
 use std::any::{Any, TypeId};
 use std::collections::HashMap;
+use std::sync::RwLock;
 
 pub struct Archetype {
-    _components: HashMap<TypeId, Box<dyn Any>>,
+    components: RwLock<HashMap<TypeId, Box<dyn Any>>>,
 }
 
 impl Archetype {
